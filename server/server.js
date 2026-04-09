@@ -54,24 +54,40 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const startServer = async () => {
-  try {
-    // Connect to MongoDB
-    await connectDB();
+if (process.env.NODE_ENV !== 'production') {
+  const startServer = async () => {
+    try {
+      // Connect to MongoDB
+      await connectDB();
 
-    // Initialize cron jobs
-    initCronJobs();
+      // Initialize cron jobs
+      initCronJobs();
 
-    app.listen(PORT, () => {
-      console.log(`\n🏥 KDPM Medical Association Server`);
-      console.log(`   ➜ Local:   http://localhost:${PORT}`);
-      console.log(`   ➜ API:     http://localhost:${PORT}/api`);
-      console.log(`   ➜ Health:  http://localhost:${PORT}/api/health\n`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
+      app.listen(PORT, () => {
+        console.log(`\n🏥 KDPM Medical Association Server`);
+        console.log(`   ➜ Local:   http://localhost:${PORT}`);
+        console.log(`   ➜ API:     http://localhost:${PORT}/api`);
+        console.log(`   ➜ Health:  http://localhost:${PORT}/api/health\n`);
+      });
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
+  };
 
-startServer();
+  startServer();
+} else {
+  // Production (Vercel Serverless) handles database connection per request
+  // or globally depending on the cold start.
+  // We initialize DB connection without blocking the export
+  connectDB()
+    .then(() => {
+      console.log('MongoDB connected for Serverless');
+      // Note: background tasks like node-cron do not run reliably on Serverless
+      initCronJobs(); 
+    })
+    .catch(console.error);
+}
+
+// Export for serverless platforms like Vercel
+module.exports = app;
