@@ -6,7 +6,17 @@
 document.addEventListener('DOMContentLoaded', () => {
   fetchMembers();
   setupModal();
+  checkAdminLogin();
 });
+
+function checkAdminLogin() {
+  const token = localStorage.getItem('kdpm_token');
+  const adminBtn = document.getElementById('adminAuthBtn');
+  if (token && adminBtn) {
+    adminBtn.textContent = 'Admin Dashboard';
+    adminBtn.href = 'dashboard.html';
+  }
+}
 
 let allMembers = [];
 
