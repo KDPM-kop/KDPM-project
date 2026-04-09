@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Global Medical Society - Home</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/home.css" />
+  </head>
+  <body class="home-body">
+    <!-- Navbar -->
+    <nav class="public-nav">
+      <div class="nav-container">
+        <div class="nav-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          Global Medical Society
+        </div>
+        <div class="nav-links">
+          <a href="#about">About</a>
+          <a href="#members">Members</a>
+          <a href="login.html" class="btn btn-outline">Admin Login</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="about" class="hero-section">
+      <div class="hero-content">
+        <span class="badge hero-badge">OFFICIAL ROSTER</span>
+        <h1 class="hero-title">Advancing Global Healthcare Together</h1>
+        <p class="hero-subtitle">
+          The Global Medical Society is an elite network of dedicated healthcare professionals,
+          researchers, and pioneers committed to advancing medical science, improving patient
+          outcomes, and fostering collaboration across disciplines worldwide.
+        </p>
+        <a href="#members" class="btn btn-primary hero-btn">View Our Members</a>
+      </div>
+    </header>
+
+    <!-- Members Directory -->
+    <section id="members" class="directory-section">
+      <div class="directory-header">
+        <h2>Our Distinguished Members</h2>
+        <p>Meet the leaders driving excellence in medical innovation and care.</p>
+      </div>
+
+      <div class="directory-container">
+        <!-- Lifetime Members -->
+        <h3 class="section-title">Lifetime Members</h3>
+        <div class="members-grid" id="lifetimeMembersGrid">
+          <!-- Populated by JS -->
+          <div class="loading-spinner">Loading members...</div>
+        </div>
+
+        <!-- Temporary Members -->
+        <h3 class="section-title mt-4">Temporary Members</h3>
+        <div class="members-grid" id="temporaryMembersGrid">
+          <!-- Populated by JS -->
+          <div class="loading-spinner">Loading members...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Member Detail Modal -->
+    <div id="memberModal" class="modal-overlay">
+      <div class="modal-content public-modal">
+        <div class="modal-banner"></div>
+        <button class="modal-close" id="closeModalBtn">&times;</button>
+        
+        <div class="modal-header-premium">
+          <div class="avatar-container">
+            <div class="member-avatar large" id="modalAvatar">AA</div>
+          </div>
+          <div class="header-text">
+            <h2 id="modalName">Dr. Name</h2>
+            <div class="badge-row">
+              <span class="role-badge" id="modalRole">MEMBER</span>
+              <span class="gender-badge" id="modalGender"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-body-premium">
+          <div class="info-grid-modern">
+            <div class="info-item-modern" id="groupQualification">
+              <div class="info-icon">🎓</div>
+              <div class="info-content">
+                <label>Qualification</label>
+                <p id="modalQualification">—</p>
+              </div>
+            </div>
+            
+            <div class="info-item-modern" id="groupMmc">
+              <div class="info-icon">🆔</div>
+              <div class="info-content">
+                <label>MMC No</label>
+                <p id="modalMmcNumber">—</p>
+              </div>
+            </div>
+
+            <div class="info-item-modern" id="groupLocation">
+              <div class="info-icon">📍</div>
+              <div class="info-content">
+                <label>Primary Location</label>
+                <p id="modalAddress">—</p>
+              </div>
+            </div>
+
+            <div class="info-item-modern" id="groupLab">
+              <div class="info-icon">🔬</div>
+              <div class="info-content">
+                <label>Lab Attachments</label>
+                <p id="modalLabAttachments">—</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="full-width-info" id="groupHobbies">
+            <div class="info-label-row">
+              <span class="dot"></span>
+              <label>Hobbies & Interests</label>
+            </div>
+            <p id="modalHobbies" class="content-box">—</p>
+          </div>
+
+          <div class="full-width-info" id="groupInterests">
+            <div class="info-label-row">
+              <span class="dot primary"></span>
+              <label>Special Interests</label>
+            </div>
+            <p id="modalSpecialInterests" class="content-box highlight">—</p>
+          </div>
+
+          <div class="full-width-info" id="notesGroup">
+            <div class="info-label-row">
+              <span class="dot warning"></span>
+              <label>Additional Information</label>
+            </div>
+            <p id="modalNotes" class="content-box notes">—</p>
+          </div>
+        </div>
+        
+        <div class="modal-footer-premium">
+          <p>Verified Professional Member of KDPM Medical Association</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="public-footer">
+      <p>&copy; 2026 Global Medical Society. All rights reserved.</p>
+    </footer>
+
+    <script src="js/home.js"></script>
+  </body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="KDPM Medical Association - Members Management">
+  <title>Members - KDPM Admin</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="brand-icon">⚕️</div>
+          <div class="brand-text">
+            <h2>KDPM</h2>
+            <span>Medical Association</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span>
+          Dashboard
+        </a>
+        <a href="members.html" class="nav-item active">
+          <span class="nav-icon">👥</span>
+          Members
+        </a>
+        <div class="nav-label">Actions</div>
+        <a href="#" class="nav-item" id="navSyncSheets">
+          <span class="nav-icon">📋</span>
+          Sync Google Sheet
+        </a>
+        <a href="#" class="nav-item" id="navExportCSV">
+          <span class="nav-icon">📥</span>
+          Export CSV
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn" id="logoutBtn">
+          <span class="nav-icon">🚪</span>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+          <div>
+            <div class="page-title">Members</div>
+            <div class="page-subtitle">Manage association members</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" id="addMemberBtn">
+            ➕ Add Member
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search by name, email, phone..."
+              >
+            </div>
+            <select class="filter-select" id="statusFilter">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="expired">Expired</option>
+              <option value="pending_renewal">Pending Renewal</option>
+            </select>
+          </div>
+          <div class="toolbar-right">
+            <button class="btn btn-outline btn-sm" id="exportBtn" title="Export to CSV">
+              📥 Export CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Members Table -->
+        <div class="card">
+          <div class="data-table-container">
+            <table class="data-table" id="membersTable">
+              <thead>
+                <tr>
+                  <th data-sort="fullName">Name ↕</th>
+                  <th data-sort="email">Email ↕</th>
+                  <th data-sort="phone">Phone</th>
+                  <th data-sort="specialization">Specialization</th>
+                  <th data-sort="membershipStatus">Status ↕</th>
+                  <th data-sort="membershipEndDate">Expiry ↕</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="membersTableBody">
+                <tr>
+                  <td colspan="7">
+                    <div class="spinner"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination">
+            <div class="pagination-info" id="paginationInfo">Loading...</div>
+            <div class="pagination-controls" id="paginationControls"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Member Modal -->
+  <div class="modal-overlay" id="memberModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Add Member</h2>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="memberForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="mFullName">Full Name *</label>
+              <input type="text" class="form-control" id="mFullName" name="fullName" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mEmail">Email *</label>
+              <input type="email" class="form-control" id="mEmail" name="email" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mPhone">Phone *</label>
+              <input type="tel" class="form-control" id="mPhone" name="phone" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mQualification">Qualification</label>
+              <input type="text" class="form-control" id="mQualification" name="qualification" placeholder="e.g., MBBS, MD">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mSpecialization">Specialization</label>
+              <input type="text" class="form-control" id="mSpecialization" name="specialization" placeholder="e.g., Cardiology">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mDesignation">Designation</label>
+              <input type="text" class="form-control" id="mDesignation" name="designation">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mMmcNumber">MMC No</label>
+              <input type="text" class="form-control" id="mMmcNumber" name="mmcNumber">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mLabAttachments">Lab Attachments</label>
+              <input type="text" class="form-control" id="mLabAttachments" name="labAttachments">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mHobbies">Hobbies</label>
+              <input type="text" class="form-control" id="mHobbies" name="hobbies">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mSpecialInterests">Special Interests</label>
+              <input type="text" class="form-control" id="mSpecialInterests" name="specialInterests">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mDob">Date of Birth</label>
+              <input type="text" class="form-control" id="mDob" name="dob">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mGender">Gender</label>
+              <input type="text" class="form-control" id="mGender" name="gender">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mPaymentScreenshot">Payment Screenshot Link</label>
+              <input type="text" class="form-control" id="mPaymentScreenshot" name="paymentScreenshot">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mStartDate">Membership Start</label>
+              <input type="date" class="form-control" id="mStartDate" name="membershipStartDate">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mEndDate">Membership End</label>
+              <input type="date" class="form-control" id="mEndDate" name="membershipEndDate">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mStatus">Status</label>
+              <select class="form-control" id="mStatus" name="membershipStatus">
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+                <option value="pending_renewal">Pending Renewal</option>
+              </select>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label" for="mAddress">Address</label>
+              <textarea class="form-control" id="mAddress" name="address" rows="2"></textarea>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label" for="mNotes">Notes</label>
+              <textarea class="form-control" id="mNotes" name="notes" rows="2"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="modalCancel">Cancel</button>
+        <button class="btn btn-primary" id="modalSave">Save Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="max-width: 420px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Confirm Delete</h2>
+        <button class="modal-close" id="deleteModalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-dialog">
+          <div class="confirm-icon">⚠️</div>
+          <h3>Delete this member?</h3>
+          <p id="deleteConfirmText">This action cannot be undone.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="deleteCancelBtn">Cancel</button>
+        <button class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/members.js"></script>
+</body>
+</html>

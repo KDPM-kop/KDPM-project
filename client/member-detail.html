@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="KDPM Medical Association - Member Details">
+  <title>Member Details - KDPM Admin</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+</head>
+<body>
+  <div class="app-layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="brand-icon">⚕️</div>
+          <div class="brand-text">
+            <h2>KDPM</h2>
+            <span>Medical Association</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span>
+          Dashboard
+        </a>
+        <a href="members.html" class="nav-item active">
+          <span class="nav-icon">👥</span>
+          Members
+        </a>
+        <div class="nav-label">Actions</div>
+        <a href="#" class="nav-item" id="navSyncSheets">
+          <span class="nav-icon">📋</span>
+          Sync Google Sheet
+        </a>
+        <a href="#" class="nav-item" id="navExportCSV">
+          <span class="nav-icon">📥</span>
+          Export CSV
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn" id="logoutBtn">
+          <span class="nav-icon">🚪</span>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+          <div>
+            <div class="page-title">Member Details</div>
+            <div class="page-subtitle">
+              <a href="members.html" style="color: var(--text-link);">← Back to Members</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-container">
+        <!-- Member Header -->
+        <div class="detail-header" id="memberHeader">
+          <div class="spinner"></div>
+        </div>
+
+        <!-- Member Info -->
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h3 class="card-title">📋 Personal Information</h3>
+          </div>
+          <div class="card-body">
+            <div class="info-grid" id="personalInfo">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Membership Info -->
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h3 class="card-title">🏥 Membership Information</h3>
+          </div>
+          <div class="card-body">
+            <div class="info-grid" id="membershipInfo">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div class="card" id="editSection" style="display: none;">
+          <div class="card-header">
+            <h3 class="card-title">✏️ Edit Member</h3>
+          </div>
+          <div class="card-body">
+            <form id="editForm">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="eFullName">Full Name *</label>
+                  <input type="text" class="form-control" id="eFullName" name="fullName" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eEmail">Email *</label>
+                  <input type="email" class="form-control" id="eEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ePhone">Phone *</label>
+                  <input type="tel" class="form-control" id="ePhone" name="phone" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eQualification">Qualification</label>
+                  <input type="text" class="form-control" id="eQualification" name="qualification">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eSpecialization">Specialization</label>
+                  <input type="text" class="form-control" id="eSpecialization" name="specialization">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eDesignation">Designation</label>
+                  <input type="text" class="form-control" id="eDesignation" name="designation">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eMmcNumber">MMC No</label>
+                  <input type="text" class="form-control" id="eMmcNumber" name="mmcNumber">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eLabAttachments">Lab Attachments</label>
+                  <input type="text" class="form-control" id="eLabAttachments" name="labAttachments">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eHobbies">Hobbies</label>
+                  <input type="text" class="form-control" id="eHobbies" name="hobbies">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eSpecialInterests">Special Interests</label>
+                  <input type="text" class="form-control" id="eSpecialInterests" name="specialInterests">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eDob">Date of Birth</label>
+                  <input type="text" class="form-control" id="eDob" name="dob">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eGender">Gender</label>
+                  <input type="text" class="form-control" id="eGender" name="gender">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ePaymentScreenshot">Payment Screenshot Link</label>
+                  <input type="text" class="form-control" id="ePaymentScreenshot" name="paymentScreenshot">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eStatus">Status</label>
+                  <select class="form-control" id="eStatus" name="membershipStatus">
+                    <option value="active">Active</option>
+                    <option value="expired">Expired</option>
+                    <option value="pending_renewal">Pending Renewal</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eStartDate">Membership Start</label>
+                  <input type="date" class="form-control" id="eStartDate" name="membershipStartDate">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="eEndDate">Membership End</label>
+                  <input type="date" class="form-control" id="eEndDate" name="membershipEndDate">
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label" for="eAddress">Address</label>
+                  <textarea class="form-control" id="eAddress" name="address" rows="2"></textarea>
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label" for="eNotes">Notes</label>
+                  <textarea class="form-control" id="eNotes" name="notes" rows="2"></textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                <button type="button" class="btn btn-outline" id="cancelEditBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/member-detail.js"></script>
+</body>
+</html>

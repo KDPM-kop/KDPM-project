@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="KDPM Medical Association - Admin Dashboard">
+  <title>Dashboard - KDPM Admin</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚕️</text></svg>">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="brand-icon">⚕️</div>
+          <div class="brand-text">
+            <h2>KDPM</h2>
+            <span>Medical Association</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-label">Main Menu</div>
+        <a href="dashboard.html" class="nav-item active">
+          <span class="nav-icon">📊</span>
+          Dashboard
+        </a>
+        <a href="members.html" class="nav-item">
+          <span class="nav-icon">👥</span>
+          Members
+        </a>
+        <div class="nav-label">Actions</div>
+        <a href="#" class="nav-item" id="navSyncSheets">
+          <span class="nav-icon">📋</span>
+          Sync Google Sheet
+        </a>
+        <a href="#" class="nav-item" id="navExportCSV">
+          <span class="nav-icon">📥</span>
+          Export CSV
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn" id="logoutBtn">
+          <span class="nav-icon">🚪</span>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+          <div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-subtitle">Welcome back, Admin</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-badge">
+            <span>🟢</span>
+            <span>System Online</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-container">
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card total">
+            <div class="stat-card-header">
+              <div>
+                <div class="stat-card-value" id="statTotal">—</div>
+                <div class="stat-card-label">Total Members</div>
+              </div>
+              <div class="stat-card-icon">👥</div>
+            </div>
+          </div>
+          <div class="stat-card active">
+            <div class="stat-card-header">
+              <div>
+                <div class="stat-card-value" id="statActive">—</div>
+                <div class="stat-card-label">Active Members</div>
+              </div>
+              <div class="stat-card-icon">✅</div>
+            </div>
+          </div>
+          <div class="stat-card expired">
+            <div class="stat-card-header">
+              <div>
+                <div class="stat-card-value" id="statExpired">—</div>
+                <div class="stat-card-label">Expired</div>
+              </div>
+              <div class="stat-card-icon">❌</div>
+            </div>
+          </div>
+          <div class="stat-card pending">
+            <div class="stat-card-header">
+              <div>
+                <div class="stat-card-value" id="statPending">—</div>
+                <div class="stat-card-label">Pending Renewal</div>
+              </div>
+              <div class="stat-card-icon">⏳</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <div class="quick-action-card" onclick="window.location.href='members.html?action=add'">
+            <div class="quick-action-icon" style="background: var(--primary-50);">➕</div>
+            <div>
+              <div class="qa-text">Add Member</div>
+              <div class="qa-desc">Register a new member</div>
+            </div>
+          </div>
+          <div class="quick-action-card" id="qaSyncSheets">
+            <div class="quick-action-icon" style="background: var(--success-50);">🔄</div>
+            <div>
+              <div class="qa-text">Sync Google Sheet</div>
+              <div class="qa-desc">Import form responses</div>
+            </div>
+          </div>
+          <div class="quick-action-card" id="qaExportCSV">
+            <div class="quick-action-icon" style="background: var(--info-50);">📥</div>
+            <div>
+              <div class="qa-text">Export to CSV</div>
+              <div class="qa-desc">Download members data</div>
+            </div>
+          </div>
+          <div class="quick-action-card" onclick="window.location.href='members.html?status=expired'">
+            <div class="quick-action-icon" style="background: var(--danger-50);">📧</div>
+            <div>
+              <div class="qa-text">View Expired</div>
+              <div class="qa-desc">Members needing renewal</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Members -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Recent Members</h3>
+            <a href="members.html" class="btn btn-outline btn-sm">View All →</a>
+          </div>
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Specialization</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                </tr>
+              </thead>
+              <tbody id="recentMembersTable">
+                <tr>
+                  <td colspan="4">
+                    <div class="spinner"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
