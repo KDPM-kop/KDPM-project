@@ -72,6 +72,11 @@ const memberSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    primaryAssociation: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     mmcNumber: {
       type: String,
       default: '',

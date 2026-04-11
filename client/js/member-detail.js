@@ -51,6 +51,22 @@
     return `Dr. ${last} ${first}`;
   }
 
+  /**
+   * Build "Designation At Primary Association" subtitle line.
+   */
+  function buildDesignationLine(m) {
+    const designation = (m.designation || '').trim();
+    const primaryAssociation = (m.primaryAssociation || '').trim();
+    if (designation && primaryAssociation) {
+      return `${designation} At ${primaryAssociation}`;
+    } else if (designation) {
+      return designation;
+    } else if (primaryAssociation) {
+      return primaryAssociation;
+    }
+    return m.specialization || 'Medical Professional';
+  }
+
   function renderMember(m) {
     // Header
     const displayName = formatDisplayName(m.fullName);
@@ -66,7 +82,7 @@
       <div class="detail-avatar">${initials}</div>
       <div class="detail-info">
         <h2>${escapeHTML(displayName)}</h2>
-        <p>${escapeHTML(m.specialization || 'Medical Professional')} • ${escapeHTML(m.qualification || '')}</p>
+        <p>${escapeHTML(buildDesignationLine(m))} • ${escapeHTML(m.qualification || '')}</p>
         <div style="margin-top: 6px;">${statusBadge(m.membershipStatus)}</div>
       </div>
       <div class="detail-actions">
@@ -106,6 +122,10 @@
       <div class="info-item">
         <div class="info-label">Designation</div>
         <div class="info-value">${escapeHTML(m.designation || '—')}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Primary Association</div>
+        <div class="info-value">${escapeHTML(m.primaryAssociation || '—')}</div>
       </div>
       <div class="info-item">
         <div class="info-label">MMC No</div>
@@ -196,6 +216,7 @@
     document.getElementById('eQualification').value = m.qualification || '';
     document.getElementById('eSpecialization').value = m.specialization || '';
     document.getElementById('eDesignation').value = m.designation || '';
+    document.getElementById('ePrimaryAssociation').value = m.primaryAssociation || '';
     document.getElementById('eMmcNumber').value = m.mmcNumber || '';
     document.getElementById('eLabAttachments').value = m.labAttachments || '';
     document.getElementById('eHobbies').value = m.hobbies || '';

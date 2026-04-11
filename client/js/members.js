@@ -221,6 +221,7 @@
       document.getElementById('mQualification').value = m.qualification || '';
       document.getElementById('mSpecialization').value = m.specialization || '';
       document.getElementById('mDesignation').value = m.designation || '';
+      document.getElementById('mPrimaryAssociation').value = m.primaryAssociation || '';
       document.getElementById('mMmcNumber').value = m.mmcNumber || '';
       document.getElementById('mLabAttachments').value = m.labAttachments || '';
       document.getElementById('mHobbies').value = m.hobbies || '';

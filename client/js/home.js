@@ -82,8 +82,21 @@ function formatDisplayName(fullName) {
 function createMemberCard(member) {
   const displayName = formatDisplayName(member.fullName);
   const initials = getInitials(member.fullName);
-  const customTitle = member.designation || 'Member';
+  const designation = member.designation || '';
+  const primaryAssociation = member.primaryAssociation || '';
   const qualification = member.qualification || '';
+
+  // Build "Designation At Primary Association" subtitle
+  let subtitle = '';
+  if (designation && primaryAssociation) {
+    subtitle = `${designation} At ${primaryAssociation}`;
+  } else if (designation) {
+    subtitle = designation;
+  } else if (primaryAssociation) {
+    subtitle = primaryAssociation;
+  } else {
+    subtitle = 'Member';
+  }
 
   return `
     <div class="member-card" data-id="${member._id}">
@@ -94,7 +107,7 @@ function createMemberCard(member) {
         </div>
         <div class="member-text-group">
           <h3 class="member-name">${displayName}</h3>
-          <p class="member-role">${customTitle}</p>
+          <p class="member-role">${subtitle}</p>
           ${qualification ? `<p class="member-qualification">${qualification}</p>` : '<p class="member-qualification">&nbsp;</p>'}
         </div>
       </div>
@@ -129,7 +142,21 @@ function openModal(member) {
   const displayName = formatDisplayName(member.fullName);
   document.getElementById('modalAvatar').textContent = getInitials(member.fullName);
   document.getElementById('modalName').textContent = displayName;
-  document.getElementById('modalRole').textContent = member.designation || 'Member';
+  
+  // Build "Designation At Primary Association" for the modal role badge
+  let roleText = '';
+  const designation = member.designation || '';
+  const primaryAssociation = member.primaryAssociation || '';
+  if (designation && primaryAssociation) {
+    roleText = `${designation} At ${primaryAssociation}`;
+  } else if (designation) {
+    roleText = designation;
+  } else if (primaryAssociation) {
+    roleText = primaryAssociation;
+  } else {
+    roleText = 'Member';
+  }
+  document.getElementById('modalRole').textContent = roleText;
   document.getElementById('modalGender').textContent = member.gender || '';
   
   // Basic info fields

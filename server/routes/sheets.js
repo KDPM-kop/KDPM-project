@@ -32,6 +32,9 @@ const COLUMN_MAP = {
   'hobbies': 'hobbies',
   'profile pic': 'profilePicLink',
   'designation': 'designation',
+  'designation at primary association': 'designation',
+  'primary association': 'primaryAssociation',
+  'primary association (gov/private, institution/lab)': 'primaryAssociation',
   'mmc no': 'mmcNumber',
   'laboratory attachments': 'labAttachments',
   'dob': 'dob',
@@ -106,7 +109,9 @@ function mapRowToMember(row) {
 
     // 2) Partial-match fallbacks for columns with variable suffixes
     if (!modelField) {
-      if (normalizedKey.startsWith('designation')) {
+      if (normalizedKey.startsWith('primary association')) {
+        modelField = 'primaryAssociation';
+      } else if (normalizedKey.startsWith('designation')) {
         modelField = 'designation';
       } else if (normalizedKey.startsWith('special interest')) {
         modelField = 'specialInterests';
