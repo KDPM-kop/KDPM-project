@@ -43,6 +43,21 @@
     }, 30);
   }
 
+  /**
+   * Format a name for display as "Dr. Lastname Firstname".
+   */
+  function formatDisplayName(fullName) {
+    if (!fullName) return '';
+    if (fullName.toLowerCase().startsWith('dr.') || fullName.toLowerCase().startsWith('dr ')) {
+      return fullName;
+    }
+    const parts = fullName.trim().split(/\s+/).filter(p => p.length > 0);
+    if (parts.length === 1) return `Dr. ${parts[0]}`;
+    const last = parts[parts.length - 1];
+    const first = parts.slice(0, parts.length - 1).join(' ');
+    return `Dr. ${last} ${first}`;
+  }
+
   function renderRecentMembers(members) {
     const tbody = document.getElementById('recentMembersTable');
     if (!members || members.length === 0) {
@@ -67,7 +82,7 @@
       <tr style="cursor: pointer;" onclick="window.location.href='member-detail.html?id=${m._id}'">
         <td>
           <div class="member-info-cell">
-            <span class="member-name">Dr. ${escapeHTML(m.fullName)}</span>
+            <span class="member-name">${escapeHTML(formatDisplayName(m.fullName))}</span>
             <span class="member-email">${escapeHTML(m.email)}</span>
           </div>
         </td>

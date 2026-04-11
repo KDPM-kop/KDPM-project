@@ -62,7 +62,25 @@ function renderMembers(members) {
   });
 }
 
+/**
+ * Format a name for display as "Dr. Lastname Firstname".
+ * If the name already starts with "Dr.", it is returned as-is.
+ */
+function formatDisplayName(fullName) {
+  if (!fullName) return '';
+  // Already formatted
+  if (fullName.toLowerCase().startsWith('dr.') || fullName.toLowerCase().startsWith('dr ')) {
+    return fullName;
+  }
+  const parts = fullName.trim().split(/\s+/).filter(p => p.length > 0);
+  if (parts.length === 1) return `Dr. ${parts[0]}`;
+  const last = parts[parts.length - 1];
+  const first = parts.slice(0, parts.length - 1).join(' ');
+  return `Dr. ${last} ${first}`;
+}
+
 function createMemberCard(member) {
+  const displayName = formatDisplayName(member.fullName);
   const initials = getInitials(member.fullName);
   const customTitle = member.designation || 'Member';
   const qualification = member.qualification || '';
@@ -75,7 +93,7 @@ function createMemberCard(member) {
           <div class="member-avatar">${initials}</div>
         </div>
         <div class="member-text-group">
-          <h3 class="member-name">${member.fullName}</h3>
+          <h3 class="member-name">${displayName}</h3>
           <p class="member-role">${customTitle}</p>
           ${qualification ? `<p class="member-qualification">${qualification}</p>` : '<p class="member-qualification">&nbsp;</p>'}
         </div>
@@ -108,8 +126,9 @@ function setupModal() {
 }
 
 function openModal(member) {
+  const displayName = formatDisplayName(member.fullName);
   document.getElementById('modalAvatar').textContent = getInitials(member.fullName);
-  document.getElementById('modalName').textContent = member.fullName;
+  document.getElementById('modalName').textContent = displayName;
   document.getElementById('modalRole').textContent = member.designation || 'Member';
   document.getElementById('modalGender').textContent = member.gender || '';
   

@@ -35,10 +35,28 @@
     }
   }
 
+  /**
+   * Format a name for display as "Dr. Lastname Firstname".
+   * If the name already starts with "Dr.", it is returned as-is.
+   */
+  function formatDisplayName(fullName) {
+    if (!fullName) return '';
+    if (fullName.toLowerCase().startsWith('dr.') || fullName.toLowerCase().startsWith('dr ')) {
+      return fullName;
+    }
+    const parts = fullName.trim().split(/\s+/).filter(p => p.length > 0);
+    if (parts.length === 1) return `Dr. ${parts[0]}`;
+    const last = parts[parts.length - 1];
+    const first = parts.slice(0, parts.length - 1).join(' ');
+    return `Dr. ${last} ${first}`;
+  }
+
   function renderMember(m) {
     // Header
+    const displayName = formatDisplayName(m.fullName);
     const initials = m.fullName
       .split(' ')
+      .filter(n => n.toLowerCase() !== 'dr.' && n.toLowerCase() !== 'dr')
       .map((n) => n[0])
       .join('')
       .toUpperCase()
@@ -47,7 +65,7 @@
     document.getElementById('memberHeader').innerHTML = `
       <div class="detail-avatar">${initials}</div>
       <div class="detail-info">
-        <h2>Dr. ${escapeHTML(m.fullName)}</h2>
+        <h2>${escapeHTML(displayName)}</h2>
         <p>${escapeHTML(m.specialization || 'Medical Professional')} • ${escapeHTML(m.qualification || '')}</p>
         <div style="margin-top: 6px;">${statusBadge(m.membershipStatus)}</div>
       </div>

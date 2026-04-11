@@ -13,6 +13,11 @@ router.use(authMiddleware);
 const COLUMN_MAP = {
   'full name': 'fullName',
   'name': 'fullName',
+  'first name': '_firstName',
+  'firstname': '_firstName',
+  'last name': '_lastName',
+  'lastname': '_lastName',
+  'surname': '_lastName',
   'email': 'email',
   'email address': 'email',
   'phone': 'phone',
@@ -32,8 +37,65 @@ const COLUMN_MAP = {
   'laboratory attachments': 'labAttachments',
   'dob': 'dob',
   'sex': 'gender',
-  'screenshot of payment': 'paymentScreenshot'
+  'screenshot of payment': 'paymentScreenshot',
+  'verified': '_verified',
 };
+
+/**
+ * Check if a row is verified (the "Verified" column must contain "yes")
+ */
+function isRowVerified(row) {
+  // Look for any column header that matches "verified" (case-insensitive)
+  for (const key of Object.keys(row)) {
+    if (key.toLowerCase().trim() === 'verified') {
+      const val = (row[key] || '').toLowerCase().trim();
+      return val === 'yes';
+    }
+  }
+  return false; // No verified column found, skip the row
+}
+
+/**
+ * Format name as "Dr. Lastname Firstname"
+ * Handles both separate first/last name fields and a combined full name field.
+ */
+function formatDoctorName(memberData) {
+  const firstName = memberData._firstName || '';
+  const lastName = memberData._lastName || '';
+
+  // If we have separate first and last name fields
+  if (firstName && lastName) {
+    return `Dr. ${lastName} ${firstName}`;
+  }
+
+  // If we have a combined fullName, try to split it
+  if (memberData.fullName) {
+    let name = memberData.fullName.trim();
+
+    // Remove any existing "Dr." or "Dr" prefix to avoid duplication
+    name = name.replace(/^dr\.?\s*/i, '').trim();
+
+    const parts = name.split(/\s+/).filter(p => p.length > 0);
+
+    if (parts.length === 1) {
+      // Only one name part — use it as-is
+      return `Dr. ${parts[0]}`;
+    }
+
+    if (parts.length >= 2) {
+      // Treat last word as "last name", everything before as "first name(s)"
+      const last = parts[parts.length - 1];
+      const first = parts.slice(0, parts.length - 1).join(' ');
+      return `Dr. ${last} ${first}`;
+    }
+  }
+
+  // Fallback: if only firstName or only lastName is provided
+  if (firstName) return `Dr. ${firstName}`;
+  if (lastName) return `Dr. ${lastName}`;
+
+  return '';
+}
 
 /**
  * Map raw sheet row to member fields
@@ -49,12 +111,21 @@ function mapRowToMember(row) {
     }
   });
 
+  // Build the formatted name: "Dr. Lastname Firstname"
+  member.fullName = formatDoctorName(member);
+
+  // Clean up temporary fields (not part of the Member model)
+  delete member._firstName;
+  delete member._lastName;
+  delete member._verified;
+
   return member;
 }
 
 /**
  * POST /api/sheets/sync
  * Fetch data from Google Sheet and import new members
+ * Only imports rows where the "Verified" column is "yes"
  */
 router.post('/sync', async (req, res) => {
   try {
@@ -76,17 +147,25 @@ router.post('/sync', async (req, res) => {
       return res.json({
         success: true,
         message: 'No data found in Google Sheet.',
-        data: { imported: 0, skipped: 0, errors: 0 },
+        data: { imported: 0, skipped: 0, errors: 0, unverified: 0 },
       });
     }
 
     let imported = 0;
     let skipped = 0;
     let errors = 0;
+    let unverified = 0;
     const errorDetails = [];
 
     for (const row of sheetData) {
       try {
+        // --- VERIFIED CHECK ---
+        // Only process rows where the "Verified" column is "yes"
+        if (!isRowVerified(row)) {
+          unverified++;
+          continue;
+        }
+
         const memberData = mapRowToMember(row);
 
         // Validate required fields
@@ -117,7 +196,7 @@ router.post('/sync', async (req, res) => {
 
           // Update existing member
           await Member.updateOne({ _id: existing._id }, { $set: memberData });
-          skipped++; // Increment skipped or imported? Let's just track it as skipped (from creating duplicate), but it's really an update.
+          skipped++;
           continue;
         }
 
@@ -151,10 +230,11 @@ router.post('/sync', async (req, res) => {
 
     res.json({
       success: true,
-      message: `Sync complete. Imported: ${imported}, Skipped (duplicates): ${skipped}, Errors: ${errors}`,
+      message: `Sync complete. Imported: ${imported}, Updated: ${skipped}, Unverified (skipped): ${unverified}, Errors: ${errors}`,
       data: {
         imported,
         skipped,
+        unverified,
         errors,
         total: sheetData.length,
         errorDetails: errorDetails.slice(0, 10), // Limit error details
