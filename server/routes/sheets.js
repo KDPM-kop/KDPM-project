@@ -8,7 +8,7 @@ router.use(authMiddleware);
 
 /**
  * Column mapping — maps Google Sheet headers to Member model fields
- * Adjust these to match your actual Google Form/Sheet column headers
+ * Uses exact match (after lowercasing + trimming)
  */
 const COLUMN_MAP = {
   'full name': 'fullName',
@@ -29,7 +29,6 @@ const COLUMN_MAP = {
   'specialty': 'specialization',
   'address': 'address',
   'membership': 'membershipType',
-  'special interests in which b (patho/micro/biochem/immunohematology / any other)': 'specialInterests',
   'hobbies': 'hobbies',
   'profile pic': 'profilePicLink',
   'designation': 'designation',
@@ -45,76 +44,92 @@ const COLUMN_MAP = {
  * Check if a row is verified (the "Verified" column must contain "yes")
  */
 function isRowVerified(row) {
-  // Look for any column header that matches "verified" (case-insensitive)
   for (const key of Object.keys(row)) {
     if (key.toLowerCase().trim() === 'verified') {
       const val = (row[key] || '').toLowerCase().trim();
       return val === 'yes';
     }
   }
-  return false; // No verified column found, skip the row
+  return false;
 }
 
 /**
  * Format name as "Dr. Lastname Firstname"
- * Handles both separate first/last name fields and a combined full name field.
+ * Handles:
+ *  - Separate first/last name fields
+ *  - Full name crammed into the "First Name" field (common in the form)
+ *  - Names that already start with "Dr." or "Dr"
  */
 function formatDoctorName(memberData) {
-  const firstName = memberData._firstName || '';
-  const lastName = memberData._lastName || '';
+  let firstName = (memberData._firstName || '').trim();
+  let lastName = (memberData._lastName || '').trim();
 
-  // If we have separate first and last name fields
+  // If we have BOTH first and last name fields filled in
   if (firstName && lastName) {
+    // Strip existing Dr. prefix from either
+    firstName = firstName.replace(/^dr\.?\s*/i, '').trim();
+    lastName = lastName.replace(/^dr\.?\s*/i, '').trim();
     return `Dr. ${lastName} ${firstName}`;
   }
 
-  // If we have a combined fullName, try to split it
-  if (memberData.fullName) {
-    let name = memberData.fullName.trim();
+  // Otherwise, treat whichever name field we have as a full name
+  let nameToProcess = firstName || lastName || memberData.fullName || '';
+  if (!nameToProcess) return '';
 
-    // Remove any existing "Dr." or "Dr" prefix to avoid duplication
-    name = name.replace(/^dr\.?\s*/i, '').trim();
+  // Strip any existing "Dr." / "Dr " prefix to avoid duplication
+  nameToProcess = nameToProcess.replace(/^dr\.?\s*/i, '').trim();
 
-    const parts = name.split(/\s+/).filter(p => p.length > 0);
+  const parts = nameToProcess.split(/\s+/).filter(p => p.length > 0);
 
-    if (parts.length === 1) {
-      // Only one name part — use it as-is
-      return `Dr. ${parts[0]}`;
-    }
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return `Dr. ${parts[0]}`;
 
-    if (parts.length >= 2) {
-      // Treat last word as "last name", everything before as "first name(s)"
-      const last = parts[parts.length - 1];
-      const first = parts.slice(0, parts.length - 1).join(' ');
-      return `Dr. ${last} ${first}`;
-    }
-  }
-
-  // Fallback: if only firstName or only lastName is provided
-  if (firstName) return `Dr. ${firstName}`;
-  if (lastName) return `Dr. ${lastName}`;
-
-  return '';
+  // Last word → surname, everything else → first/middle names
+  const last = parts[parts.length - 1];
+  const first = parts.slice(0, parts.length - 1).join(' ');
+  return `Dr. ${last} ${first}`;
 }
 
 /**
- * Map raw sheet row to member fields
+ * Map raw sheet row to member fields.
+ * Handles exact COLUMN_MAP matches + partial-match patterns for columns
+ * whose headers vary (e.g. "Designation (Gov/Pvt)", "Laboratory Attachment-1").
  */
 function mapRowToMember(row) {
   const member = {};
 
   Object.keys(row).forEach((key) => {
     const normalizedKey = key.toLowerCase().trim();
-    const modelField = COLUMN_MAP[normalizedKey];
-    if (modelField && row[key]) {
+
+    // 1) Try exact match from COLUMN_MAP
+    let modelField = COLUMN_MAP[normalizedKey];
+
+    // 2) Partial-match fallbacks for columns with variable suffixes
+    if (!modelField) {
+      if (normalizedKey.startsWith('designation')) {
+        modelField = 'designation';
+      } else if (normalizedKey.startsWith('special interest')) {
+        modelField = 'specialInterests';
+      } else if (normalizedKey.startsWith('laboratory attachment')) {
+        // Combine all "Laboratory Attachment-N" columns into one field
+        if (row[key] && row[key].trim()) {
+          member.labAttachments = member.labAttachments
+            ? member.labAttachments + ', ' + row[key].trim()
+            : row[key].trim();
+        }
+        return; // handled — skip normal assignment
+      }
+    }
+
+    if (modelField && row[key] && row[key].trim()) {
       member[modelField] = row[key].trim();
     }
   });
 
-  // Build the formatted name: "Dr. Lastname Firstname"
+  // Build the formatted full name: "Dr. Lastname Firstname"
   member.fullName = formatDoctorName(member);
 
-  // Clean up temporary fields (not part of the Member model)
+  // Clean up temporary fields that are not part of the Member model
   delete member._firstName;
   delete member._lastName;
   delete member._verified;
@@ -124,8 +139,8 @@ function mapRowToMember(row) {
 
 /**
  * POST /api/sheets/sync
- * Fetch data from Google Sheet and import new members
- * Only imports rows where the "Verified" column is "yes"
+ * Fetch data from Google Sheet and import new members.
+ * Only imports rows where the "Verified" column is "yes".
  */
 router.post('/sync', async (req, res) => {
   try {
@@ -160,7 +175,6 @@ router.post('/sync', async (req, res) => {
     for (const row of sheetData) {
       try {
         // --- VERIFIED CHECK ---
-        // Only process rows where the "Verified" column is "yes"
         if (!isRowVerified(row)) {
           unverified++;
           continue;
@@ -187,20 +201,20 @@ router.post('/sync', async (req, res) => {
         });
 
         if (existing) {
-          // Parse membership type text from sheet (e.g., handles "Life Membership (₹3000)")
+          // Parse membership type
           if (memberData.membershipType && memberData.membershipType.toLowerCase().includes('life')) {
              memberData.membershipType = 'Lifetime Membership';
           } else if (memberData.membershipType) {
              memberData.membershipType = 'Temporary Membership';
           }
 
-          // Update existing member
+          // Update existing member with latest data
           await Member.updateOne({ _id: existing._id }, { $set: memberData });
           skipped++;
           continue;
         }
 
-        // Parse membership type text from sheet (e.g., handles "Life Membership (₹3000)")
+        // Parse membership type
         if (memberData.membershipType && memberData.membershipType.toLowerCase().includes('life')) {
            memberData.membershipType = 'Lifetime Membership';
         } else {
@@ -237,7 +251,7 @@ router.post('/sync', async (req, res) => {
         unverified,
         errors,
         total: sheetData.length,
-        errorDetails: errorDetails.slice(0, 10), // Limit error details
+        errorDetails: errorDetails.slice(0, 10),
       },
     });
   } catch (error) {
