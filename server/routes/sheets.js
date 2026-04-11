@@ -249,4 +249,30 @@ router.post('/sync', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/sheets/preview
+ * Debug endpoint — returns raw column headers and first 3 rows from the sheet
+ */
+router.get('/preview', async (req, res) => {
+  try {
+    const sheetData = await fetchSheetData();
+    const headers = sheetData.length > 0 ? Object.keys(sheetData[0]) : [];
+    const sampleRows = sheetData.slice(0, 3);
+
+    res.json({
+      success: true,
+      data: {
+        totalRows: sheetData.length,
+        headers,
+        sampleRows,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to preview sheet: ' + error.message,
+    });
+  }
+});
+
 module.exports = router;
