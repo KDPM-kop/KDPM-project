@@ -172,10 +172,11 @@ router.post('/sync', async (req, res) => {
     }
 
     let imported = 0;
-    let skipped = 0;
+    let skipped = 0; // Means updated
     let errors = 0;
     let unverified = 0;
     const errorDetails = [];
+    const processedMemberIds = []; // Track IDs of members present in the sheet
 
     for (const row of sheetData) {
       try {
@@ -213,8 +214,9 @@ router.post('/sync', async (req, res) => {
              memberData.membershipType = 'Temporary Membership';
           }
 
-          // Update existing member with latest data
-          await Member.updateOne({ _id: existing._id }, { $set: memberData });
+          // Update existing member with latest data and ensure source is google_sheet
+          await Member.updateOne({ _id: existing._id }, { $set: { ...memberData, source: 'google_sheet' } });
+          processedMemberIds.push(existing._id);
           skipped++;
           continue;
         }
@@ -237,6 +239,7 @@ router.post('/sync', async (req, res) => {
         });
 
         await member.save();
+        processedMemberIds.push(member._id);
         imported++;
       } catch (rowError) {
         errors++;
@@ -247,15 +250,24 @@ router.post('/sync', async (req, res) => {
       }
     }
 
+    // --- DELETION LOGIC ---
+    // Remove members who were originally from google_sheet but are no longer present
+    const deleteResult = await Member.deleteMany({
+      source: 'google_sheet',
+      _id: { $nin: processedMemberIds },
+    });
+    const deletedCount = deleteResult.deletedCount;
+
     res.json({
       success: true,
-      message: `Sync complete. Imported: ${imported}, Updated: ${skipped}, Unverified (skipped): ${unverified}, Errors: ${errors}`,
+      message: `Sync complete. Imported: ${imported}, Updated: ${skipped}, Deleted: ${deletedCount}, Unverified (skipped): ${unverified}, Errors: ${errors}`,
       data: {
         imported,
-        skipped,
+        updated: skipped, // Returning skipped as updated for clarity
+        deleted: deletedCount,
         unverified,
         errors,
-        total: sheetData.length,
+        totalInSheet: sheetData.length,
         errorDetails: errorDetails.slice(0, 10),
       },
     });
