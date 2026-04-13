@@ -1,7 +1,11 @@
 const express = require('express');
 const Member = require('../models/Member');
 const authMiddleware = require('../middleware/auth');
-const { fetchSheetData } = require('../config/googleSheets');
+const {
+  fetchSheetData,
+  extractFileIdFromUrl,
+  renameGoogleDriveFile,
+} = require('../config/googleSheets');
 const router = express.Router();
 
 router.use(authMiddleware);
@@ -91,6 +95,39 @@ function formatDoctorName(memberData) {
   const last = parts[parts.length - 1];
   const first = parts.slice(0, parts.length - 1).join(' ');
   return `Dr. ${last} ${first}`;
+}
+
+/**
+ * Rename payment screenshot file to person's name
+ * Extracts file ID from Google Drive link and renames the file
+ * @param {string} paymentScreenshotUrl - Google Drive link to the screenshot
+ * @param {string} personName - Name to rename the file to
+ * @returns {Promise<boolean>} - True if successful or if no URL provided
+ */
+async function renamePaymentScreenshot(paymentScreenshotUrl, personName) {
+  if (!paymentScreenshotUrl || !personName) {
+    return true; // Skip silently if no URL or name
+  }
+
+  try {
+    const fileId = extractFileIdFromUrl(paymentScreenshotUrl);
+    if (!fileId) {
+      console.warn(
+        `⚠️ Could not extract file ID from URL: ${paymentScreenshotUrl}`
+      );
+      return false;
+    }
+
+    // Get file extension by checking the original file
+    // Default to .jpg if we can't determine
+    const newFileName = `${personName}.jpg`;
+
+    const renamed = await renameGoogleDriveFile(fileId, newFileName);
+    return renamed;
+  } catch (error) {
+    console.error(`❌ Error renaming payment screenshot for ${personName}:`, error.message);
+    return false;
+  }
 }
 
 /**
@@ -214,6 +251,11 @@ router.post('/sync', async (req, res) => {
              memberData.membershipType = 'Temporary Membership';
           }
 
+          // Rename payment screenshot if present
+          if (memberData.paymentScreenshot) {
+            await renamePaymentScreenshot(memberData.paymentScreenshot, memberData.fullName);
+          }
+
           // Update existing member with latest data and ensure source is google_sheet
           await Member.updateOne({ _id: existing._id }, { $set: { ...memberData, source: 'google_sheet' } });
           processedMemberIds.push(existing._id);
@@ -226,6 +268,11 @@ router.post('/sync', async (req, res) => {
            memberData.membershipType = 'Lifetime Membership';
         } else {
            memberData.membershipType = 'Temporary Membership';
+        }
+
+        // Rename payment screenshot if present
+        if (memberData.paymentScreenshot) {
+          await renamePaymentScreenshot(memberData.paymentScreenshot, memberData.fullName);
         }
 
         // Create new member
