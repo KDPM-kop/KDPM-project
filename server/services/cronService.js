@@ -8,7 +8,8 @@ const {
 /**
  * Daily Cron Job — runs at midnight every day
  * Checks membership end dates and triggers emails:
- * - 7 days before expiry: send reminder, set status to pending_renewal
+ * - 30 days before expiry: send first reminder, set status to pending_renewal
+ * - Every 7 days after: resend reminder until expiry
  * - Past expiry: send expired notification, set status to expired
  */
 const initCronJobs = () => {
@@ -18,28 +19,28 @@ const initCronJobs = () => {
 
     try {
       const now = new Date();
-      const sevenDaysFromNow = new Date();
-      sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-      // 1. Find members expiring in the next 7 days (not already notified recently)
+      // 1. Find members expiring in the next 30 days (send reminders every 7 days)
       const expiringMembers = await Member.find({
         membershipStatus: { $in: ['active', 'pending_renewal'] },
         membershipEndDate: {
           $gte: now,
-          $lte: sevenDaysFromNow,
+          $lte: thirtyDaysFromNow,
         },
         $or: [
           { lastReminderSent: null },
           {
             lastReminderSent: {
-              $lt: new Date(now.getTime() - 24 * 60 * 60 * 1000), // Not sent in last 24h
+              $lt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // Not sent in last 7 days
             },
           },
         ],
       });
 
       console.log(
-        `📋 Found ${expiringMembers.length} members expiring within 7 days.`
+        `📋 Found ${expiringMembers.length} members expiring within 30 days.`
       );
 
       for (const member of expiringMembers) {
